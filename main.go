@@ -83,7 +83,7 @@ func run() {
 	// Importantr variables
 	var jetX, jetY, velX, velY, radians float64
 	jetpackOn := false
-	gravity := 0.04 // Default: 0.004
+	gravity := 0.02 // Default: 0.004
 	jetAcc := 0.08  // Default: 0.008
     tilt := 0.025   // Default: 0.001
 	whichOn := false
@@ -114,6 +114,10 @@ func run() {
 	fmt.Fprintf(txt, "blast off bitch!")
 
 	currentSprite := jetpackOff
+
+    frameCounter := 0
+    areadout := int(jetY)
+    vreadout := int(velY)
 
 	// Game Loop
 	for !win.Closed() {
@@ -147,7 +151,6 @@ func run() {
             velY += acc.X
             velX -= acc.Y
 
-//			velY += jetAcc
 			whichOn = !whichOn
 			onNumber++
 			if onNumber == 5 { // every 5 frames, toggle anijetMation
@@ -195,9 +198,25 @@ func run() {
 		// Drawing to the screen
 		win.SetSmooth(true)
 		bg.Draw(win, pixel.IM.Moved(pixel.V(win.Bounds().Center().X, win.Bounds().Center().Y+766)).Scaled(pixel.ZV, 10))
-		txt.Draw(win, pixel.IM)
+
+
+        //doesnt work
+//		txt.Draw(win, jetMat)
+        txt.Clear()
+        fmt.Fprintf(txt, "altitude: %d\n", areadout)
+        fmt.Fprintf(txt, "velocity: %d", vreadout)
+        txt.Draw(win, pixel.IM.Moved(positionVector))
+
+        if(frameCounter >= 10) {
+            areadout = int(jetY)
+            vreadout = int(velY)
+            frameCounter = 0
+        }
+
 		win.SetSmooth(false)
 		currentSprite.Draw(win, jetMat)
+
+        frameCounter++;
 
 	}
 
