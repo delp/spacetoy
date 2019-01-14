@@ -73,6 +73,7 @@ func run() {
 		Title:  "Golang Jetpack!",
 		Bounds: pixel.R(0, 0, 1024, 768),
 		VSync:  true,
+        Monitor: pixelgl.PrimaryMonitor(),
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -85,7 +86,7 @@ func run() {
 	jetpackOn := false
 	gravity := 0.13 // Default: 0.004
 	jetAcc := 0.08  // Default: 0.008
-	tilt := 0.01   // Default: 0.001
+    tilt := 0.025   // Default: 0.001
 	whichOn := false
 	onNumber := 0
 	jetpackOffName := "ship.png"
@@ -111,7 +112,7 @@ func run() {
 
 	// Tutorial Text
 	txt := loadTTF("intuitive.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
-	fmt.Fprintf(txt, "Explore the Skies with WASD or Arrow Keys!")
+	fmt.Fprintf(txt, "blast off bitch!")
 
 	currentSprite := jetpackOff
 
@@ -124,15 +125,9 @@ func run() {
 		jetpackOn = win.Pressed(pixelgl.KeyUp) || win.Pressed(pixelgl.KeyW)
 
 		if win.Pressed(pixelgl.KeyRight) || win.Pressed(pixelgl.KeyD) {
-			jetpackOn = true
-			flipped = -1
 			radians -= tilt
-			velX += tilt * 30
 		} else if win.Pressed(pixelgl.KeyLeft) || win.Pressed(pixelgl.KeyA) {
-			jetpackOn = true
-			flipped = 1
 			radians += tilt
-			velX -= tilt * 30
 		} else {
 			if velX < 0 {
 				radians -= tilt / 3
