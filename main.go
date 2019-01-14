@@ -111,7 +111,6 @@ func run() {
 
 	// Tutorial Text
 	txt := loadTTF("intuitive.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
-	fmt.Fprintf(txt, "blast off bitch!")
 
 	currentSprite := jetpackOff
 
@@ -144,9 +143,6 @@ func run() {
             heading := pixel.Unit(radians)
 
             acc := heading.Scaled(jetAcc)
-
-            fmt.Println(heading)
-            fmt.Println(acc)
 
             velY += acc.X
             velX -= acc.Y
