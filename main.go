@@ -73,7 +73,7 @@ func run() {
 		Title:  "Golang Jetpack!",
 		Bounds: pixel.R(0, 0, 1024, 768),
 		VSync:  true,
-        Monitor: pixelgl.PrimaryMonitor(),
+        //Monitor: pixelgl.PrimaryMonitor(),
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -82,9 +82,8 @@ func run() {
 
 	// Importantr variables
 	var jetX, jetY, velX, velY, radians float64
-	flipped := 1.0
 	jetpackOn := false
-	gravity := 0.13 // Default: 0.004
+	gravity := 0.04 // Default: 0.004
 	jetAcc := 0.08  // Default: 0.008
     tilt := 0.025   // Default: 0.001
 	whichOn := false
@@ -128,22 +127,27 @@ func run() {
 			radians -= tilt
 		} else if win.Pressed(pixelgl.KeyLeft) || win.Pressed(pixelgl.KeyA) {
 			radians += tilt
-		} else {
-			if velX < 0 {
-				radians -= tilt / 3
-				velX += tilt * 10
-			} else if velX > 0 {
-				radians += tilt / 3
-				velX -= tilt * 10
-			}
 		}
+
 		if jetY < 0 {
 			jetY = 0
 			velY = -0.3 * velY
 		}
 
 		if jetpackOn {
-			velY += jetAcc
+
+
+            heading := pixel.Unit(radians)
+
+            acc := heading.Scaled(jetAcc)
+
+            fmt.Println(heading)
+            fmt.Println(acc)
+
+            velY += acc.X
+            velX -= acc.Y
+
+//			velY += jetAcc
 			whichOn = !whichOn
 			onNumber++
 			if onNumber == 5 { // every 5 frames, toggle anijetMation
@@ -156,14 +160,15 @@ func run() {
 			}
 		} else {
 			currentSprite = jetpackOff
-			velY -= gravity
 		}
+
+
+        velY -= gravity
 
 		positionVector := pixel.V(win.Bounds().Center().X+jetX, win.Bounds().Center().Y+jetY-372)
 		jetMat := pixel.IM
 		jetMat = jetMat.Scaled(pixel.ZV, 4)
 		jetMat = jetMat.Moved(positionVector)
-		jetMat = jetMat.ScaledXY(positionVector, pixel.V(flipped, 1))
 		jetMat = jetMat.Rotated(positionVector, radians)
 
 		jetX += velX
