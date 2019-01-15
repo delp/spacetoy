@@ -67,6 +67,14 @@ func loadTTF(path string, size float64, origin pixel.Vec) *text.Text {
 
 }
 
+type mode int
+
+const (
+	Menu   mode = 0
+	Flying mode = 1
+	Map  mode = 2
+)
+
 func run() {
 	// Set up window configs
 	cfg := pixelgl.WindowConfig{ // Default: 1024 x 768
@@ -109,7 +117,6 @@ func run() {
 		panic(err)
 	}
 
-	// Tutorial Text
 	txt := loadTTF("intuitive.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
 
 	currentSprite := jetpackOff
@@ -118,101 +125,135 @@ func run() {
 	areadout := int(jetY)
 	vreadout := int(velY)
 
+	currentmode := Flying
+
 	// Game Loop
 	for !win.Closed() {
-		win.Update()
-		win.Clear(colornames.Green)
 
-		// Jetpack - Controls
-		jetpackOn = win.Pressed(pixelgl.KeyUp) || win.Pressed(pixelgl.KeyW)
+		if currentmode == Flying {
 
-		if win.Pressed(pixelgl.KeyRight) || win.Pressed(pixelgl.KeyD) {
-			radians -= tilt
-		} else if win.Pressed(pixelgl.KeyLeft) || win.Pressed(pixelgl.KeyA) {
-			radians += tilt
-		}
+		        win.Update()
+			win.Clear(colornames.Green)
+			// Jetpack - Controls
+			jetpackOn = win.Pressed(pixelgl.KeyUp) || win.Pressed(pixelgl.KeyW)
 
-		if jetY < 0 {
-			jetY = 0
-			velY = -0.3 * velY
-		}
-
-		if jetpackOn {
-
-			heading := pixel.Unit(radians)
-
-			acc := heading.Scaled(jetAcc)
-
-			velY += acc.X
-			velX -= acc.Y
-
-			whichOn = !whichOn
-			onNumber++
-			if onNumber == 5 { // every 5 frames, toggle anijetMation
-				onNumber = 0
-				if whichOn {
-					currentSprite = jetpackOn1
-				} else {
-					currentSprite = jetpackOn2
-				}
+			if win.Pressed(pixelgl.KeyRight) || win.Pressed(pixelgl.KeyD) {
+				radians -= tilt
+			} else if win.Pressed(pixelgl.KeyLeft) || win.Pressed(pixelgl.KeyA) {
+				radians += tilt
+			} else if win.JustPressed(pixelgl.KeyW) {
+				currentmode = Menu
+			} else if win.JustPressed(pixelgl.KeyM) {
+				currentmode = Map
 			}
-		} else {
-			currentSprite = jetpackOff
+
+			if jetY < 0 {
+				jetY = 0
+				velY = -0.3 * velY
+			}
+
+			if jetpackOn {
+
+				heading := pixel.Unit(radians)
+
+				acc := heading.Scaled(jetAcc)
+
+				velY += acc.X
+				velX -= acc.Y
+
+				whichOn = !whichOn
+				onNumber++
+				if onNumber == 5 { // every 5 frames, toggle anijetMation
+					onNumber = 0
+					if whichOn {
+						currentSprite = jetpackOn1
+					} else {
+						currentSprite = jetpackOn2
+					}
+				}
+			} else {
+				currentSprite = jetpackOff
+			}
+
+			velY -= gravity
+
+			positionVector := pixel.V(win.Bounds().Center().X+jetX, win.Bounds().Center().Y+jetY-372)
+			jetMat := pixel.IM
+			jetMat = jetMat.Scaled(pixel.ZV, 4)
+			jetMat = jetMat.Moved(positionVector)
+			jetMat = jetMat.Rotated(positionVector, radians)
+
+			jetX += velX
+			jetY += velY
+
+			// Camera
+			camVector.X += (positionVector.X - camVector.X) * 0.2
+			camVector.Y += (positionVector.Y - camVector.Y) * 0.2
+
+			if camVector.X > 25085 {
+				camVector.X = 25085
+			} else if camVector.X < -14843 {
+				camVector.X = -14843
+			}
+
+			if camVector.Y > 22500 {
+				camVector.Y = 22500
+			}
+
+			cam := pixel.IM.Moved(win.Bounds().Center().Sub(camVector))
+
+			win.SetMatrix(cam)
+
+			// Drawing to the screen
+			win.SetSmooth(true)
+			bg.Draw(win, pixel.IM.Moved(pixel.V(win.Bounds().Center().X, win.Bounds().Center().Y+766)).Scaled(pixel.ZV, 10))
+
+			//doesnt work
+			//		txt.Draw(win, jetMat)
+			txt.Clear()
+			fmt.Fprintf(txt, "altitude: %d\n", areadout)
+			fmt.Fprintf(txt, "velocity: %d", vreadout)
+			txt.Draw(win, pixel.IM.Moved(positionVector))
+
+			if frameCounter >= 10 {
+				areadout = int(jetY)
+				vreadout = int(velY)
+				frameCounter = 0
+			}
+
+			win.SetSmooth(false)
+			currentSprite.Draw(win, jetMat)
+
+			frameCounter++
+		}
+		if currentmode == Menu {
+		        win.Update()
+			win.Clear(colornames.Blue)
+			win.SetSmooth(false)
+
+			if win.JustPressed(pixelgl.KeyQ) {
+				currentmode = Flying
+			}
+
+
 		}
 
-		velY -= gravity
 
-		positionVector := pixel.V(win.Bounds().Center().X+jetX, win.Bounds().Center().Y+jetY-372)
-		jetMat := pixel.IM
-		jetMat = jetMat.Scaled(pixel.ZV, 4)
-		jetMat = jetMat.Moved(positionVector)
-		jetMat = jetMat.Rotated(positionVector, radians)
+		if currentmode == Map {
+		        win.Update()
+			win.Clear(colornames.Pink)
+			win.SetSmooth(false)
 
-		jetX += velX
-		jetY += velY
+			if win.JustPressed(pixelgl.KeyQ) || win.JustPressed(pixelgl.KeyM) {
+				currentmode = Flying
+			}
 
-		// Camera
-		camVector.X += (positionVector.X - camVector.X) * 0.2
-		camVector.Y += (positionVector.Y - camVector.Y) * 0.2
 
-		if camVector.X > 25085 {
-			camVector.X = 25085
-		} else if camVector.X < -14843 {
-			camVector.X = -14843
 		}
 
-		if camVector.Y > 22500 {
-			camVector.Y = 22500
-		}
 
-		cam := pixel.IM.Moved(win.Bounds().Center().Sub(camVector))
-
-		win.SetMatrix(cam)
-
-		// Drawing to the screen
-		win.SetSmooth(true)
-		bg.Draw(win, pixel.IM.Moved(pixel.V(win.Bounds().Center().X, win.Bounds().Center().Y+766)).Scaled(pixel.ZV, 10))
-
-		//doesnt work
-		//		txt.Draw(win, jetMat)
-		txt.Clear()
-		fmt.Fprintf(txt, "altitude: %d\n", areadout)
-		fmt.Fprintf(txt, "velocity: %d", vreadout)
-		txt.Draw(win, pixel.IM.Moved(positionVector))
-
-		if frameCounter >= 10 {
-			areadout = int(jetY)
-			vreadout = int(velY)
-			frameCounter = 0
-		}
-
-		win.SetSmooth(false)
-		currentSprite.Draw(win, jetMat)
-
-		frameCounter++
 
 	}
-
 }
 
 func main() {
