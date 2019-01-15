@@ -70,9 +70,9 @@ func loadTTF(path string, size float64, origin pixel.Vec) *text.Text {
 type mode int
 
 const (
-	Menu   mode = 0
-	Flying mode = 1
-	Map  mode = 2
+	menu   mode = 0
+	flying mode = 1
+	mapper mode = 2
 )
 
 func run() {
@@ -89,102 +89,102 @@ func run() {
 	}
 
 	// Importantr variables
-	var jetX, jetY, velX, velY, radians float64
-	jetpackOn := false
+	var shipX, shipY, velX, velY, radians float64
+	engineOn := false
 	gravity := 0.02 // Default: 0.004
-	jetAcc := 0.08  // Default: 0.008
+	shipAcc := 0.08 // Default: 0.008
 	tilt := 0.025   // Default: 0.001
 	whichOn := false
 	onNumber := 0
-	jetpackOffName := "ship.png"
-	jetpackOn1Name := "ship_on.png"
-	jetpackOn2Name := "ship_on2.png"
+	shipOffName := "ship.png"
+	shipOn1Name := "ship_on.png"
+	shipOn2Name := "ship_on2.png"
 	camVector := win.Bounds().Center()
 
 	bg, _ := loadSprite("sky.png")
 
 	// Jetpack - Rendering
-	jetpackOff, err := loadSprite(jetpackOffName)
+	engineOff, err := loadSprite(shipOffName)
 	if err != nil {
 		panic(err)
 	}
-	jetpackOn1, err := loadSprite(jetpackOn1Name)
+	engineOn1, err := loadSprite(shipOn1Name)
 	if err != nil {
 		panic(err)
 	}
-	jetpackOn2, err := loadSprite(jetpackOn2Name)
+	engineOn2, err := loadSprite(shipOn2Name)
 	if err != nil {
 		panic(err)
 	}
 
-	txt := loadTTF("intuitive.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
+	txt := loadTTF("oldgamefatty.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
 
-	currentSprite := jetpackOff
+	currentSprite := engineOff
 
 	frameCounter := 0
-	areadout := int(jetY)
+	areadout := int(shipY)
 	vreadout := int(velY)
 
-	currentmode := Flying
+	currentmode := flying
 
 	// Game Loop
 	for !win.Closed() {
 
-		if currentmode == Flying {
+		if currentmode == flying {
 
-		        win.Update()
+			win.Update()
 			win.Clear(colornames.Green)
 			// Jetpack - Controls
-			jetpackOn = win.Pressed(pixelgl.KeyUp) || win.Pressed(pixelgl.KeyW)
+			engineOn = win.Pressed(pixelgl.KeyUp) || win.Pressed(pixelgl.KeyW)
 
 			if win.Pressed(pixelgl.KeyRight) || win.Pressed(pixelgl.KeyD) {
 				radians -= tilt
 			} else if win.Pressed(pixelgl.KeyLeft) || win.Pressed(pixelgl.KeyA) {
 				radians += tilt
 			} else if win.JustPressed(pixelgl.KeyW) {
-				currentmode = Menu
+				currentmode = menu
 			} else if win.JustPressed(pixelgl.KeyM) {
-				currentmode = Map
+				currentmode = mapper
 			}
 
-			if jetY < 0 {
-				jetY = 0
+			if shipY < 0 {
+				shipY = 0
 				velY = -0.3 * velY
 			}
 
-			if jetpackOn {
+			if engineOn {
 
 				heading := pixel.Unit(radians)
 
-				acc := heading.Scaled(jetAcc)
+				acc := heading.Scaled(shipAcc)
 
 				velY += acc.X
 				velX -= acc.Y
 
 				whichOn = !whichOn
 				onNumber++
-				if onNumber == 5 { // every 5 frames, toggle anijetMation
+				if onNumber == 5 { // every 5 frames, toggle anishipMation
 					onNumber = 0
 					if whichOn {
-						currentSprite = jetpackOn1
+						currentSprite = engineOn1
 					} else {
-						currentSprite = jetpackOn2
+						currentSprite = engineOn2
 					}
 				}
 			} else {
-				currentSprite = jetpackOff
+				currentSprite = engineOff
 			}
 
 			velY -= gravity
 
-			positionVector := pixel.V(win.Bounds().Center().X+jetX, win.Bounds().Center().Y+jetY-372)
-			jetMat := pixel.IM
-			jetMat = jetMat.Scaled(pixel.ZV, 4)
-			jetMat = jetMat.Moved(positionVector)
-			jetMat = jetMat.Rotated(positionVector, radians)
+			positionVector := pixel.V(win.Bounds().Center().X+shipX, win.Bounds().Center().Y+shipY-372)
+			shipMat := pixel.IM
+			shipMat = shipMat.Scaled(pixel.ZV, 4)
+			shipMat = shipMat.Moved(positionVector)
+			shipMat = shipMat.Rotated(positionVector, radians)
 
-			jetX += velX
-			jetY += velY
+			shipX += velX
+			shipY += velY
 
 			// Camera
 			camVector.X += (positionVector.X - camVector.X) * 0.2
@@ -209,50 +209,74 @@ func run() {
 			bg.Draw(win, pixel.IM.Moved(pixel.V(win.Bounds().Center().X, win.Bounds().Center().Y+766)).Scaled(pixel.ZV, 10))
 
 			//doesnt work
-			//		txt.Draw(win, jetMat)
+			//		txt.Draw(win, shipMat)
 			txt.Clear()
 			fmt.Fprintf(txt, "altitude: %d\n", areadout)
 			fmt.Fprintf(txt, "velocity: %d", vreadout)
 			txt.Draw(win, pixel.IM.Moved(positionVector))
 
 			if frameCounter >= 10 {
-				areadout = int(jetY)
+				areadout = int(shipY)
 				vreadout = int(velY)
 				frameCounter = 0
 			}
 
 			win.SetSmooth(false)
-			currentSprite.Draw(win, jetMat)
+			currentSprite.Draw(win, shipMat)
 
 			frameCounter++
 		}
-		if currentmode == Menu {
-		        win.Update()
-			win.Clear(colornames.Blue)
-			win.SetSmooth(false)
+		if currentmode == menu {
+			currentitem := 0
 
-			if win.JustPressed(pixelgl.KeyQ) {
-				currentmode = Flying
+			for currentmode == menu {
+				win.Update()
+				win.Clear(colornames.Blue)
+
+				if win.JustPressed(pixelgl.KeyUp) {
+					currentitem++
+					if currentitem > 2 {
+						currentitem = 0
+					}
+				}
+
+				if win.JustPressed(pixelgl.KeyDown) {
+					currentitem--
+					if currentitem < 0 {
+						currentitem = 2
+					}
+				}
+
+				if win.JustPressed(pixelgl.KeyEnter) {
+
+					switch currentitem {
+					case 0:
+						currentmode = flying
+					case 1:
+						win.Destroy()
+					case 2:
+						win.Destroy()
+					}
+				}
+
+				win.SetSmooth(false)
+
+				txt.Clear()
+				fmt.Fprintf(txt, "%d\n", currentitem)
+				txt.Draw(win, pixel.IM)
 			}
-
-
 		}
 
-
-		if currentmode == Map {
-		        win.Update()
+		if currentmode == mapper {
+			win.Update()
 			win.Clear(colornames.Pink)
-			win.SetSmooth(false)
 
 			if win.JustPressed(pixelgl.KeyQ) || win.JustPressed(pixelgl.KeyM) {
-				currentmode = Flying
+				currentmode = flying
 			}
 
-
+			win.SetSmooth(false)
 		}
-
-
-
 	}
 }
 
