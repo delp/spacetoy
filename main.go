@@ -96,12 +96,12 @@ func run() {
 	tilt := 0.025   // Default: 0.001
 	whichOn := false
 	onNumber := 0
-	shipOffName := "ship.png"
-	shipOn1Name := "ship_on.png"
-	shipOn2Name := "ship_on2.png"
+	shipOffName := "res/ship.png"
+	shipOn1Name := "res/ship_on.png"
+	shipOn2Name := "res/ship_on2.png"
 	camVector := win.Bounds().Center()
 
-	bg, _ := loadSprite("sky.png")
+	bg, _ := loadSprite("res/sky.png")
 
 	// Jetpack - Rendering
 	engineOff, err := loadSprite(shipOffName)
@@ -117,7 +117,7 @@ func run() {
 		panic(err)
 	}
 
-	txt := loadTTF("oldgamefatty.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
+	txt := loadTTF("fonts/oldgamefatty.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
 
 	currentSprite := engineOff
 
