@@ -70,10 +70,10 @@ func loadTTF(path string, size float64, origin pixel.Vec) *text.Text {
 func run() {
 	// Set up window configs
 	cfg := pixelgl.WindowConfig{ // Default: 1024 x 768
-		Title:  "Golang Jetpack!",
+		Title:  "woosh!",
 		Bounds: pixel.R(0, 0, 1024, 768),
 		VSync:  true,
-        //Monitor: pixelgl.PrimaryMonitor(),
+		//Monitor: pixelgl.PrimaryMonitor(),
 	}
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
@@ -85,7 +85,7 @@ func run() {
 	jetpackOn := false
 	gravity := 0.02 // Default: 0.004
 	jetAcc := 0.08  // Default: 0.008
-    tilt := 0.025   // Default: 0.001
+	tilt := 0.025   // Default: 0.001
 	whichOn := false
 	onNumber := 0
 	jetpackOffName := "ship.png"
@@ -114,9 +114,9 @@ func run() {
 
 	currentSprite := jetpackOff
 
-    frameCounter := 0
-    areadout := int(jetY)
-    vreadout := int(velY)
+	frameCounter := 0
+	areadout := int(jetY)
+	vreadout := int(velY)
 
 	// Game Loop
 	for !win.Closed() {
@@ -139,13 +139,12 @@ func run() {
 
 		if jetpackOn {
 
+			heading := pixel.Unit(radians)
 
-            heading := pixel.Unit(radians)
+			acc := heading.Scaled(jetAcc)
 
-            acc := heading.Scaled(jetAcc)
-
-            velY += acc.X
-            velX -= acc.Y
+			velY += acc.X
+			velX -= acc.Y
 
 			whichOn = !whichOn
 			onNumber++
@@ -161,8 +160,7 @@ func run() {
 			currentSprite = jetpackOff
 		}
 
-
-        velY -= gravity
+		velY -= gravity
 
 		positionVector := pixel.V(win.Bounds().Center().X+jetX, win.Bounds().Center().Y+jetY-372)
 		jetMat := pixel.IM
@@ -195,24 +193,23 @@ func run() {
 		win.SetSmooth(true)
 		bg.Draw(win, pixel.IM.Moved(pixel.V(win.Bounds().Center().X, win.Bounds().Center().Y+766)).Scaled(pixel.ZV, 10))
 
+		//doesnt work
+		//		txt.Draw(win, jetMat)
+		txt.Clear()
+		fmt.Fprintf(txt, "altitude: %d\n", areadout)
+		fmt.Fprintf(txt, "velocity: %d", vreadout)
+		txt.Draw(win, pixel.IM.Moved(positionVector))
 
-        //doesnt work
-//		txt.Draw(win, jetMat)
-        txt.Clear()
-        fmt.Fprintf(txt, "altitude: %d\n", areadout)
-        fmt.Fprintf(txt, "velocity: %d", vreadout)
-        txt.Draw(win, pixel.IM.Moved(positionVector))
-
-        if(frameCounter >= 10) {
-            areadout = int(jetY)
-            vreadout = int(velY)
-            frameCounter = 0
-        }
+		if frameCounter >= 10 {
+			areadout = int(jetY)
+			vreadout = int(velY)
+			frameCounter = 0
+		}
 
 		win.SetSmooth(false)
 		currentSprite.Draw(win, jetMat)
 
-        frameCounter++;
+		frameCounter++
 
 	}
 
