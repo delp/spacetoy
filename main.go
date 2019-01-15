@@ -118,6 +118,7 @@ func run() {
 	}
 
 	txt := loadTTF("fonts/oldgamefatty.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y-200))
+	menutxt := loadTTF("fonts/oldgamefatty.ttf", 50, pixel.V(win.Bounds().Center().X-450, win.Bounds().Center().Y+200))
 
 	currentSprite := engineOff
 
@@ -229,6 +230,7 @@ func run() {
 		if currentmode == menu {
 			currentitem := 0
 
+			win.SetMatrix(pixel.IM)
 			for currentmode == menu {
 				win.Update()
 				win.Clear(colornames.Blue)
@@ -253,17 +255,17 @@ func run() {
 					case 0:
 						currentmode = flying
 					case 1:
-						win.Destroy()
+						return
 					case 2:
-						win.Destroy()
+						return
 					}
 				}
 
 				win.SetSmooth(false)
 
-				txt.Clear()
-				fmt.Fprintf(txt, "%d\n", currentitem)
-				txt.Draw(win, pixel.IM)
+				menutxt.Clear()
+				fmt.Fprintf(menutxt, "%d\n", currentitem)
+				menutxt.Draw(win, pixel.IM)
 			}
 		}
 
