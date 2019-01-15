@@ -191,6 +191,9 @@ func run() {
 			camVector.X += (positionVector.X - camVector.X) * 0.2
 			camVector.Y += (positionVector.Y - camVector.Y) * 0.2
 
+			shipY = pixel.Clamp(shipY, -5, 22500)
+			shipX = pixel.Clamp(shipX, -14843, 25085)
+
 			if camVector.X > 25085 {
 				camVector.X = 25085
 			} else if camVector.X < -14843 {
